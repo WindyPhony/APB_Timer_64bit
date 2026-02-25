@@ -1,0 +1,58 @@
+module counter(
+	input wire CLK,
+	input wire RST_N,
+	input wire sel_wTDR0,
+	input wire sel_wTDR1,
+	input wire timer_en,
+	input wire cnt_en,
+	input wire [31:0]DATA_TDR0,
+	input wire [31:0]DATA_TDR1,
+	output reg [63:0]COUNTER_VALUE
+);
+
+reg pre_timer_en;
+wire [1:0]timer_ctrl;
+reg [63:0]cnt;
+
+assign timer_ctrl = {pre_timer_en, timer_en};
+
+always @* begin
+	case (timer_ctrl)
+		2'b00  : cnt = COUNTER_VALUE;
+		2'b01  : cnt = cnt_en ? (COUNTER_VALUE + 1) : COUNTER_VALUE;
+		2'b10  : cnt = 64'h0;
+		default: cnt = cnt_en ? (COUNTER_VALUE + 1) : COUNTER_VALUE;	
+	endcase
+end
+
+always @(posedge CLK or negedge RST_N) begin
+	if(!RST_N) begin
+		pre_timer_en <= 1'b0;
+	end
+	else begin
+		pre_timer_en <= timer_en;
+	end
+end
+
+always @(posedge CLK or negedge RST_N) begin
+	if(!RST_N) begin
+		COUNTER_VALUE <= 64'h0;
+	end
+	else begin
+		if(sel_wTDR0) begin
+			COUNTER_VALUE[31:0] <= DATA_TDR0; 
+		end
+		else begin
+			COUNTER_VALUE[31:0] <= cnt[31:0];
+		end
+	
+		if(sel_wTDR1) begin
+			COUNTER_VALUE[63:32] <= DATA_TDR1; 
+		end
+		else begin
+			COUNTER_VALUE[63:32] <= cnt[63:32];
+		end
+
+	end
+end
+endmodule

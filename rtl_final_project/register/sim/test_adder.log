@@ -1,0 +1,12 @@
+# vsim -debugDB -l test_adder.log -voptargs="+acc" -assertdebug -c test_bench -do "log -r /*;run -all;" 
+# Start time: 00:20:35 on May 11,2025
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# ** Note: (vsim-8611) Generating debug db.
+# ** Warning: (vopt-10587) Some optimizations are turned off because the +acc switch is in effect. This will cause your simulation to run slowly. Please use -access/-debug to maintain needed visibility.
+# ** Error (suppressible): ../tb/test_bench.v(28): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'DATA_TDR0'.
+# ** Error (suppressible): ../tb/test_bench.v(28): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'DATA_TDR1'.
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=2, Warnings=1.
+# Error loading design
+# End time: 00:20:36 on May 11,2025, Elapsed time: 0:00:01
+# Errors: 2, Warnings: 1

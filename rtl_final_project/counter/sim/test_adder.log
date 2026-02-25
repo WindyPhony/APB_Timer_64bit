@@ -1,0 +1,20 @@
+# vsim -debugDB -l test_adder.log -voptargs="+acc" -assertdebug -c test_bench -do "log -r /*;run -all;" 
+# Start time: 02:11:25 on May 09,2025
+# ** Note: (vsim-3812) Design is being optimized...
+# ** Note: (vsim-8611) Generating debug db.
+# ** Warning: (vopt-10587) Some optimizations are turned off because the +acc switch is in effect. This will cause your simulation to run slowly. Please use -access/-debug to maintain needed visibility.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'CLK'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'RST_N'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'sel_wTDR0'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'sel_wTDR1'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'timer_en'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'cnt_en'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'initial_TDR0'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'initial_TDR1'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'PWDATA'.
+# ** Error (suppressible): ../tb/test_bench.v(15): (vopt-2247) The implicit port connection (.*) did not find a matching port, net, variable or interface instance for port 'COUNTER_VALUE'.
+# Optimization failed
+# ** Note: (vsim-12126) Error and warning message counts have been restored: Errors=10, Warnings=1.
+# Error loading design
+# End time: 02:11:26 on May 09,2025, Elapsed time: 0:00:01
+# Errors: 10, Warnings: 1
