@@ -1,0 +1,22 @@
+# ===== Vim / Editor temporary files =====
+*~
+*.swp
+*.swo
+*.un~
+.*.un~
+.*.swp
+
+# ===== Simulation outputs =====
+sim/
+work/
+vsim.wlf
+transcript
+*.log
+
+# ===== Questa / ModelSim =====
+modelsim.ini
+*.db
+*.vstf
+
+# ===== OS =====
+.DS_Store
