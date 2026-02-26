@@ -1,0 +1,294 @@
+module register (
+	input wire CLK,
+	input wire RST_N,
+	input wire WRITE_EN,
+	input wire READ_EN,
+	input wire PWRITE,
+	input wire [11:0] PADDR,
+	input wire [31:0] PWDATA,
+	input wire [3:0]  PSTRB,
+	input wire [63:0] COUNTER_VALUE,
+	input wire dbg_mode,
+	input wire PREADY,
+	output wire halt_ack,
+	output wire div_en,
+	output wire [3:0] div_val,
+	output wire timer_en,
+	output wire sel_wTDR0,
+	output wire sel_wTDR1,
+	output reg [31:0] PRDATA, 
+	output wire PSLVERR, 
+	output wire tim_int,
+	output wire err_div_val_timer,
+        output wire err_div_en,
+	output wire [31:0] DATA_TDR0,
+	output wire [31:0] DATA_TDR1
+);
+
+//write TCR register
+//wire [31:0] TCR;
+wire sel_wTCR;
+wire ewrite_div_val;
+wire ewrite_div_timer_en;
+reg  [3:0] div_val_t;
+reg  div_en_t;
+reg  timer_en_t;
+
+assign sel_wTCR            = (PADDR == 12'h000) & WRITE_EN;
+assign ewrite_div_val      = (PWDATA[11:8] < 4'b1001) & PSTRB[1] & sel_wTCR;
+assign ewrite_div_timer_en = PSTRB[0] & sel_wTCR;
+assign div_val             = div_val_t;
+assign div_en              = div_en_t;
+assign timer_en            = timer_en_t;
+//assign TCR                 = {20'h0, div_val_t, 6'h0, div_en_t, timer_en_t};
+//assign TCR[31:12]          = 20'h0;
+//assign TCR[7:2]            = 6'h0;
+
+always @(posedge CLK or negedge RST_N) begin
+
+	if(!RST_N) begin
+		div_val_t <= 4'b0001;
+		div_en_t <= 1'b0;
+		timer_en_t <= 1'b0;
+	end 
+	else begin
+		if(ewrite_div_val) begin
+			div_val_t <= PWDATA[11:8];
+		end
+		else begin
+			div_val_t <= div_val_t;
+		end
+
+		if(ewrite_div_timer_en) begin
+			div_en_t <= PWDATA[1];
+			timer_en_t <= PWDATA[0];
+		end
+		else begin
+			div_en_t <= div_en_t;
+			timer_en_t <= timer_en_t;
+		end
+	end
+
+end
+
+//write TDR0 register
+wire [31:0] TDR0;
+
+assign sel_wTDR0   = WRITE_EN & (PADDR == 12'h004);
+assign TDR0[31:24] = (PSTRB[3] & sel_wTDR0) ? PWDATA[31:24] : COUNTER_VALUE[31:24];
+assign TDR0[23:16] = (PSTRB[2] & sel_wTDR0) ? PWDATA[23:16] : COUNTER_VALUE[23:16];
+assign TDR0[15:8]  = (PSTRB[1] & sel_wTDR0) ? PWDATA[15:8]  : COUNTER_VALUE[15:8] ;
+assign TDR0[7:0]   = (PSTRB[0] & sel_wTDR0) ? PWDATA[7:0]   : COUNTER_VALUE[7:0]  ;
+assign DATA_TDR0   = TDR0;
+
+//write TDR1 register
+wire [31:0] TDR1;
+
+assign sel_wTDR1   = WRITE_EN & (PADDR == 12'h008);
+assign TDR1[31:24] = (PSTRB[3] & sel_wTDR1) ? PWDATA[31:24] : COUNTER_VALUE[63:56];
+assign TDR1[23:16] = (PSTRB[2] & sel_wTDR1) ? PWDATA[23:16] : COUNTER_VALUE[55:48];
+assign TDR1[15:8]  = (PSTRB[1] & sel_wTDR1) ? PWDATA[15:8]  : COUNTER_VALUE[47:40];
+assign TDR1[7:0]   = (PSTRB[0] & sel_wTDR1) ? PWDATA[7:0]   : COUNTER_VALUE[39:32];
+assign DATA_TDR1   = TDR1;
+
+//write TCPM0 register
+reg [31:0] TCMP0;
+wire sel_wTCMP0;
+
+assign sel_wTCMP0 = WRITE_EN & (PADDR == 12'h00C);
+
+always @(posedge CLK or negedge RST_N) begin
+
+	if(!RST_N) begin
+		TCMP0 <= 32'hffff_ffff;
+	end
+	else begin
+		if(sel_wTCMP0 && PSTRB[3]) begin
+			TCMP0[31:24] <= PWDATA[31:24];
+		end
+		else begin
+			TCMP0[31:24] <= TCMP0[31:24];
+		end
+
+		if(sel_wTCMP0 && PSTRB[2]) begin
+			TCMP0[23:16] <= PWDATA[23:16];
+		end
+		else begin
+			TCMP0[23:16] <= TCMP0[23:16];
+		end
+
+		if(sel_wTCMP0 && PSTRB[1]) begin
+			TCMP0[15:8] <= PWDATA[15:8];
+		end
+		else begin
+			TCMP0[15:8] <= TCMP0[15:8];
+		end
+
+		if(sel_wTCMP0 && PSTRB[0]) begin
+			TCMP0[7:0] <= PWDATA[7:0];
+		end
+		else begin
+			TCMP0[7:0] <= TCMP0[7:0];
+		end
+	end
+end
+
+//write TCMP1 register
+reg [31:0] TCMP1;
+wire sel_wTCMP1;
+
+assign sel_wTCMP1 = WRITE_EN & (PADDR == 12'h010);
+
+always @(posedge CLK or negedge RST_N) begin
+
+	if(!RST_N) begin
+		TCMP1 <= 32'hffff_ffff;
+	end
+	else begin
+		if(sel_wTCMP1 && PSTRB[3]) begin
+			TCMP1[31:24] <= PWDATA[31:24];
+		end
+		else begin
+			TCMP1[31:24] <= TCMP1[31:24];
+		end
+
+		if(sel_wTCMP1 && PSTRB[2]) begin
+			TCMP1[23:16] <= PWDATA[23:16];
+		end
+		else begin
+			TCMP1[23:16] <= TCMP1[23:16];
+		end
+
+		if(sel_wTCMP1 && PSTRB[1]) begin
+			TCMP1[15:8] <= PWDATA[15:8];
+		end
+		else begin
+			TCMP1[15:8] <= TCMP1[15:8];
+		end
+
+		if(sel_wTCMP1 && PSTRB[0]) begin
+			TCMP1[7:0] <= PWDATA[7:0];
+		end
+		else begin
+			TCMP1[7:0] <= TCMP1[7:0];
+		end
+	end
+end
+
+//write TIER register
+//wire [31:0] TIER;
+wire sel_wTIER;
+reg INT_EN;
+
+//assign TIER = {31'h0, INT_EN};
+assign sel_wTIER = WRITE_EN & (PADDR == 12'h014);
+//assign TIER[31:1] = 31'h0; 
+
+always @(posedge CLK or negedge RST_N) begin
+
+	if(!RST_N) begin
+		INT_EN = 1'b0;
+	end
+	else begin
+		if(sel_wTIER && PSTRB[0]) begin
+			INT_EN <= PWDATA[0];
+		end
+		else begin
+			INT_EN <= INT_EN;
+		end
+	end
+end
+
+//write TISR register
+//wire [31:0] TISR;
+wire [63:0] TCMP;
+wire sel_wTISR;
+reg INT_ST;
+wire clr_int;
+
+assign TCMP      = {TCMP1, TCMP0};
+//assign TISR      = {31'h0, INT_ST};
+assign sel_wTISR = WRITE_EN & (PADDR == 12'h018);
+assign clr_int   = (sel_wTISR & PSTRB[0]) & PWDATA[0];
+//assign TISR[31:1]  = 31'h0;
+
+always @(posedge CLK or negedge RST_N) begin
+
+	if(!RST_N) begin
+		INT_ST <= 1'b0;
+	end
+	else begin
+		if(clr_int) begin
+			INT_ST <= 1'b0;
+		end
+		else begin
+			if(COUNTER_VALUE == TCMP) begin
+				INT_ST <= 1'b1;
+			end
+			else begin
+				INT_ST <= INT_ST;
+			end
+		end 
+	end
+end
+
+assign tim_int = INT_EN & INT_ST;
+
+//write THCSR register
+//wire [31:0] THCSR;
+wire sel_wTHCSR;
+//reg halt_ack_t;
+reg halt_req;
+
+assign sel_wTHCSR = WRITE_EN & (PADDR == 12'h01C);
+//assign halt_ack = halt_ack_t;
+//assign THCSR = {30'h0, halt_ack_t, halt_req};
+//assign THCSR[31:2] = 30'h0;
+
+always @(posedge CLK or negedge RST_N) begin
+
+	if(!RST_N) begin
+		halt_req <= 1'b0;
+	end
+	else begin	
+		if(sel_wTHCSR && PSTRB[0]) begin
+			halt_req <= PWDATA[0];	
+		end
+		else begin
+			halt_req <= halt_req;
+		end
+	end
+end
+assign halt_ack = halt_req & dbg_mode;
+
+//read register
+always @* begin
+	if(!READ_EN) begin
+		PRDATA <= 32'h0;
+	end
+	else begin
+		case(PADDR)
+			12'h000: PRDATA = {20'h0, div_val_t, 6'h0, div_en_t, timer_en_t};
+			12'h004: PRDATA = COUNTER_VALUE[31:0];
+			12'h008: PRDATA = COUNTER_VALUE[63:32];
+			12'h00C: PRDATA = TCMP0;
+			12'h010: PRDATA = TCMP1;
+			12'h014: PRDATA = {31'h0, INT_EN};
+			12'h018: PRDATA = {31'h0, INT_ST};
+			12'h01C: PRDATA = {30'h0, halt_ack, halt_req};
+			default: PRDATA = PRDATA;
+		endcase
+
+	end
+end
+
+//slave error
+wire err_div_val_mode;
+
+assign err_div_val_mode  = !(PWDATA[11:8] < 4'b1001) & PSTRB[1];
+assign err_div_val_timer = (PWDATA[11:8] != div_val) & timer_en & PSTRB[1];
+assign err_div_en        = (PWDATA[1] != div_en) & timer_en & PSTRB[0];
+assign PSLVERR           = (err_div_val_mode | err_div_val_timer | err_div_en) & PREADY & (PADDR == 12'h000) & PWRITE;
+
+endmodule
+
